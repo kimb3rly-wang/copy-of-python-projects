@@ -1,0 +1,214 @@
+"""This program is able to perform an encryption task when user enters
+the text to encrypt and a key, a decryption task when the user enters
+the text to decrypt and a key, and it is able to generate a random
+key when given the length."""
+
+__author__ = "Kimberly Wang"
+
+
+from random import randint
+
+def clean(text: str) -> str:
+    """ Return the user inputted text as plain or encrypted text
+    that is all capitalized. 
+    >>> clean('he llo')
+    'HELLO'
+    >>> clean('123&kIM')
+    'KIM'
+    """
+
+    clean_text = ""
+    for char in text:
+        # Adds the character to clean_text if it is a letter.
+        if "A" <= char <= "Z" or "a" <= char <= "z":
+            clean_text += char
+
+    clean_text = clean_text.upper()
+
+    return clean_text
+
+
+def split_text(text: str):
+    """ Print the string text by adding a space
+    after every 5 characters. """
+
+    SPLIT_BY = 5
+
+    for i in range(0, len(text), 5):
+        print(text[i: i + SPLIT_BY] + " ", end = "")
+    print()
+
+
+def get_key() -> str:
+    """ Return user inputted string of text as the key,
+    which is between 1 and 500 letters long. """
+
+    MIN = 0
+    MAX = 500
+    
+    while True:
+        print()
+        key = input("A key is any string of letters (1-500 chars): ")
+        clean_key = clean(key)
+        # Ensures that the length is within the MIN and MAX.
+        if len(clean_key) == MIN or len(clean_key) > MAX:
+            print("Invalid key.")
+        else:
+            break
+           
+    return clean_key
+
+
+def get_rand_char() -> str:
+   """ Return a random character from A to Z"""
+ 
+   random_char = chr(randint(65, 90))
+   return random_char
+
+
+def menu_one() -> str:
+    """ Return the encrypted message after the user inputs a string and
+    a key. """
+
+    SPLIT_BY = 5
+    ORD_A = 65
+    ORD_Z = 90
+    encrypted = ""
+
+    text = input("Please enter text to encrypt: ")
+    plain = clean(text)
+    print("This is the plaintext:", end = " ")
+    split_text(plain)
+    
+    key = get_key()
+    print("Using encryption key:", key)
+    print()
+    
+    for i in range(len(plain)):
+        # Finds the index of the character to add in the key.
+        index_of_char = i % len(key)
+        # The value of the character is 64 subtracted from the sum
+        # of the index in the plaintext and the key.
+        new_char = ord(plain[i]) + ord(key[index_of_char]) - (ORD_A - 1)
+        
+        if ORD_A <= new_char <= ORD_Z:
+            encrypted += chr(new_char)
+        # Character value loops to the front of the alphabet, so that the
+        # value is always between "A" and "Z". 
+        elif new_char > ORD_Z:
+            new_char -= ORD_Z - ORD_A + 1
+            encrypted += chr(new_char)
+    
+    # Adds random generated character(s) to make the encrypted string a
+    # multiple of 5. 
+    if len(encrypted) % SPLIT_BY != 0:
+        for i in range(SPLIT_BY - len(encrypted) % SPLIT_BY):
+            rand_char = get_rand_char()
+            encrypted += rand_char
+
+    print("Your message has been encrypted: ")
+    split_text(encrypted)
+    print()
+    
+    
+def menu_two():
+    """ Return the decrypted message after user inputs the message
+    to decode."""
+
+    ORD_A = 65
+    ORD_Z = 90
+    decrypted = ""
+
+    text = input("Please enter text to decrypt: ")
+    cipher = clean(text)
+    print("This is the ciphertext:", end = "")
+    split_text(cipher)
+
+    key = get_key()
+    print("Using decryption key:", key)
+    print()
+    
+    for i in range(len(cipher)):
+        index_of_char = i % len(key)
+        new_char = ord(cipher[i]) - ord(key[index_of_char])
+        # If the order of the key is greater or equal to the order of the
+        # cipher, loop to the back of the alphabet.
+        if new_char < 1:
+            new_char = new_char + ORD_Z
+        # Shifts the value of new_char back into range between A and Z
+        else:
+            new_char = new_char + ORD_A - 1
+        decrypted += chr(new_char)
+
+    print("Your message has been decrypted: ")
+    split_text(decrypted)
+    print()
+
+
+def menu_three():
+    """ Print a randomly generated key that is between 1 and 500 characters
+    inclusive and is in all caps. """
+
+    MIN = 0
+    MAX = 500
+    generated_key = ""
+
+    print("Generate an encryption key comprised of random characters (max 500).")
+
+    while True:
+        try:
+            key = int(input("Enter the desired length of key: "))
+            if MIN < key <= MAX:
+                # Adds a random character key times.
+                for i in range(key):
+                    rand_char = get_rand_char()
+                    generated_key += rand_char
+                break
+        # There is an error message for wrong type or when the
+        # key is out of range.
+        except ValueError or key == MIN or key > MAX:
+            print("invalid length")
+    
+    print("Your new encryption key: ")
+    print(generated_key)
+    print()
+
+
+def main():
+    """ This is the main function."""
+    
+    print("----------------------------------")
+    print("EasyCrypt Text Encryptor/Decryptor")
+    print("----------------------------------")
+    
+    while True:
+        print("Please choose from one of the following menus:")
+        print("1. Encrypt plaintext.")
+        print("2. Decrypt ciphertext.")
+        print("3. Generate key.")
+        print("4. Exit.")
+
+        while True:
+            option = input("> ")
+            print()
+            if option == "1":
+                menu_one()
+                break
+            elif option == "2":
+                menu_two()
+                break
+            elif option == "3":
+                menu_three()
+                break
+            elif option == "4":
+                break
+            else:
+                print("Invalid choice. Try again.")
+                print()
+            
+        if option == "4":
+            break
+
+ 
+if __name__ == "__main__":
+   main()
