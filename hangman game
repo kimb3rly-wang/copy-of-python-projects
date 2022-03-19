@@ -1,0 +1,379 @@
+"""The player will first pick a category of hangman. The category options
+will be animals, colours or fruits. The computer will then choose a random
+word from the category and print each letter as an underscore to the user.
+The user will guess either the letter or complete word and the computer
+will replace the underscore with the letter(s) if the user guesses
+correctly and prints the list of guessed letters and lives remaining. The
+user will lose a life if they guess incorrectly. The game ends once the
+user guesses all the letters or the word itself with one or more lives
+remaining and wins or the user fails to eliminate all underscores and all
+lives are lost. The player can play again, view the scoreboard, or quit
+the game.
+"""
+
+__author__ = "Kimberly Wang"
+
+import random
+
+LIVES = 6
+LETTERS_IN_ALPHABET = 26
+LOWERCASE_A = 97
+LOWERCASE_Z = 123
+UPPER_TO_LOWER = 32
+DIVIDER = "-" * LETTERS_IN_ALPHABET
+A = "animals"
+B = "colours"
+C = "fruits"
+
+WORDS = {A: ["ape", "anteater", "antelope", "bear", "badger", "bat", "beaver",
+             "camel", "cat", "caribou", "cougar", "catfish", "dog", "dingo",
+             "donkey", "deer", "elephant", "emu", "eagle", "ferret", "fish",
+             "gorilla", "goose", "hamster","iguana","kangaroo", "lion",
+             "monkey", "moose", "newt", "orangutan","ostrich", "pug",
+             "python", "quail", "raccoon","rat", "rattlesnake", "rhinoceros",
+             "serpent","swan", "spider","turtle", "tarantula", "turkey",
+             "umbrellabird", "urchin", "vulture", "whale", "wallababy", "wasp",
+             "walrus", "warthog", "zebra", "zebrafish"],
+         B: ["red", "orange", "yellow", "green", "teal", "blue", "purple",
+             "brown", "black", "pink", "aquamarine", "white", "burgundy",
+             "grey", "cream", "beige", "silver", "rose", "indigo","violet",
+             "maroon", "navy", "cyan", "mustard", "coral","gold", "skyblue",
+             "magenta", "turquoise", "sage", "lavender", "tan", "charcoal",
+             "fuchsia", "crimson", "ruby", "sapphire", "lilac"],
+         C: ["apple", "blueberry", "banana", "strawberry", "mango", "raspberry",
+             "mangosteen", "lychee", "watermelon","cantaloupe", "melon",
+             "pear", "coconut", "orange", "pomegranate", "cherry", "peach",
+             "guava", "blackberry","pineapple", "fig", "pumpkin", "avocado",
+             "durian", "plum","grapefruit", "lemon", "lime", "honeydew",
+             "nectarine", "tomato", "kiwi", "berry", "passionfruit",
+             "mandarin", "dragonfruit", "blackcurrant", "jackfruit", "kumquat"]
+         }
+
+ 
+def get_category(A: str, B:str, C:str) -> str:
+    """Return a valid category from the user. The computer will accept
+    either the letter option or category."""
+
+    while True:
+        try:
+            category = input("""CHOOSE A CATEGORY:
+a. animals
+b. colours
+c. fruits
+> """)
+            #Ensures multiple options of input are valid
+            if category == "a" or category == A:
+                category = A
+                break
+            elif category == "b" or category == B:
+                category = B
+                break
+            elif category == "c" or category == C:
+                category = C
+                break
+            else:
+                print("Invalid option.")
+                print()
+        except ValueError:
+            print("Invalid option.")
+            print()
+    print()
+    return category
+
+
+def get_guess(word: str, UPPER_TO_LOWER: int)-> str:
+    """Return a valid user-inputted guess that is in all lower-case."""
+
+    invalid = True
+    lower_guess = ""
+    
+    while invalid:
+        try:
+            guess = input("ENTER YOUR GUESS: ")
+            #Ensures the guess is either a single letter, or the word.
+            if len(guess) == 1 or len(guess) == len(word):
+                for char in guess:
+                    if "a" <= char <= "z":
+                        invalid = False
+                        lower_guess += char
+                    #Converts all upper case letters to lowercase.
+                    elif "A" <= char <= "Z":
+                        invalid = False
+                        char = chr(ord(char) + UPPER_TO_LOWER)
+                        lower_guess += char
+                    else:
+                        print("Guess must be a letter! Try again.")
+                        break
+            else:
+                length = len(word)
+                print("The word is {} letters long. Try again.".format(length))
+                
+        except ValueError:
+            print("Guess must be a letter! Try again.")
+    
+    return lower_guess
+
+            
+def get_random_word(category:str , WORDS:list) -> str:
+    """Return a random word of the specific category chosen."""
+
+    return random.choice(WORDS[category])
+        
+
+def underscores(guess: str, word:str, underscores_:list) -> list:
+    """Return the correctly guessed letters as letters and the unguessed
+    letters as a series of underscores.
+    
+    >>>underscores("a", "bear", ["_", "_", "_", "_"]
+    ["_", "_", "a", "_"]
+    
+    >>>underscores("zebra", "zebra", ["_", "_", "_", "_", "_"])
+    ["z", "e", "b", "r", "a"]
+    """
+
+    for i in range(len(word)):
+        if len(guess) == 1:
+            if word[i] == guess:
+                underscores_[i] = guess
+    #If user guesses the word correctly, replace the underscores
+    #list as the guess
+    if word == guess:
+        underscores_ = guess
+        
+    return underscores_
+
+    
+def initial_underscores(word: str) -> list:
+    """Return the word as a list of underscores.
+
+    >>>initial_underscores("cat")
+    ["_", "_", "_"]
+    >>>initial_underscores("lamb")
+    ["_", "_", "_", "_"]
+    """
+
+    underscores_list = []
+    for letter in word:
+        underscores_list.append("_")
+
+    return underscores_list
+        
+
+def print_underscores(underscores_: list):
+    """Print the underscores each round."""
+    for item in underscores_:
+        print(item, end = " ")
+        
+    print()
+
+
+def initial_letter_list(LOWERCASE_A: int, LOWERCASE_Z: int) -> list:
+    """Return the letter list of the alphabet."""
+
+    alphabet = []
+    for i in range(LOWERCASE_A, LOWERCASE_Z + 1):
+        alphabet.append(chr(i))
+        
+    return alphabet
+            
+    
+def letter_list(guess: str, alphabet: list) -> list:
+    """Return the list of letters user has not yet guessed. and replace
+    the already guessed letters with a space
+
+    >>>("a", ["a", "b", "c"]
+    [" ", "b", "c"]
+    
+    >>>("d", ["a", " ", "c", "d", "e"]
+    ["a", " ", "c", " ", "e"]
+    """
+
+    for i in range(len(alphabet)):
+        if alphabet[i] == guess:
+            alphabet[i] = " "
+
+    return alphabet
+                 
+
+def format_letter_list(alphabet: list, LETTERS_IN_ALPHABET: int):
+    """Print and format the letter list into two rows"""
+
+    for i in range(LETTERS_IN_ALPHABET//2):
+        print(alphabet[i], end = " ")
+    print()
+    for i in range(LETTERS_IN_ALPHABET//2, LETTERS_IN_ALPHABET):
+        print(alphabet[i], end = " ")
+    print()
+
+    
+def hangman(lives: int, LIVES: int):
+    """Print and format the hangman picture and number of lives remaining according
+    to lives remaining."""
+    
+    if lives == LIVES:
+        print("""
++---+
+|
+|
+|
+======""")
+              
+    elif lives == LIVES - 1:
+        print("""
++---+
+|   0️
+|
+|
+======""")
+        
+    elif lives == LIVES - 2:
+        print("""+---+
+|   0️
+|   |
+|
+=====""")
+        
+    elif lives == LIVES - 3:
+        print("""
++---+
+|   0️
+|  -|
+|
+======""")
+        
+    elif lives == LIVES - 4:
+        print("""
++---+
+|   0️
+|  -|-
+|
+======""")
+        
+    elif lives == LIVES - 5:
+        print("""
++---+
+|   0️
+|  -|-
+|  /  
+=====""")
+
+    else:
+        #No extra line before picture for formatting.
+        print("""+---+  (Oh no!)
+|   0️/
+|  -|-
+|  / \ 
+======""")
+        
+    hearts_left = "♥" * lives
+    print("LIVES LEFT:", end = " ")
+    if lives == 0:
+        print("NONE")
+    else:
+        print(hearts_left)
+
+
+def main():
+    """This is the main function."""
+    print("""
+
+    +---+                                         
+    |   0️   █ █ ▄▀█ █▄ █ █▀▀ █▀▄▀█ ▄▀█ █▄ █               
+    |  -|-    █▀█ █▀█ █ ▀█ █▄█ █ ▀ █ █▀█ █ ▀█  
+    |  / \    
+    ======
+    
+  First pick a category and the computer will choose a word
+  from that category for you to guess. You may guess a
+  letter, or the word itself. Whenever you guess wrong, you
+  will lose a life! You have a total of {} lives, guess
+  the word before the man gets hung!
+""".format(A, B, C, LIVES))
+    
+    games_played = 0
+    wins = 0
+
+    while True:
+        turns = 0
+        games_played += 1
+        guess_list = []
+        lives = LIVES
+        guess = ""
+        
+        alphabet = initial_letter_list(LOWERCASE_A, LOWERCASE_Z)
+        category = get_category(A, B, C)
+        word = get_random_word(category, WORDS)
+        #Changes the word to all underscores.
+        underscores_ = initial_underscores(word)
+        winning = False
+        
+        while lives > 0 and winning == False:
+            turns += 1
+            print("CATEGORY: " + category + " - TURN {}".format(turns))
+            print_underscores(underscores_)
+            hangman(lives, LIVES)
+            
+            #Prints and formats the letter list remaining without the letters
+            #already guessed into two rows.
+            alphabet = letter_list(guess, alphabet)
+            format_letter_list(alphabet, LETTERS_IN_ALPHABET)
+
+            #Ensures user picks a letter or word not already guessed.               
+            while True:
+                guess = get_guess(word, UPPER_TO_LOWER)
+                for i in range(len(guess_list)):
+                    if guess == guess_list[i]:
+                        print("You have already guessed this!")
+                if guess not in guess_list:
+                    guess_list.append(guess)
+                    break
+                    
+            print("\n\n" + DIVIDER)
+            underscores_ = underscores(guess, word, underscores_)
+
+            #If there are no more missing letters to guess, quit the loop.
+            if "_" not in underscores_:
+                winning = True
+            else:
+                #Deducts a life if the letter is not in the word.
+                if guess not in word and len(guess) != len(word):
+                    lives -= 1
+                    print("'{}' is not in the word!".format(guess))
+                #Deducts a life if the word is incorrectly guessed.
+                elif len(guess) == len(word) and guess != word:
+                    lives -= 1
+                    print("""'{}' is the wrong word.""".format(guess))
+                #Continues if user has guessed a letter correctly.
+                elif guess in word and "_" in underscores_:
+                    print("'{}' is in the word.".format(guess))
+                print(DIVIDER + "\n\n")
+
+        if winning == True:
+            print("Congrats! You won in {} moves.".format(turns))
+            wins += 1
+        else:
+            hangman(0, LIVES)
+            print("\n\n" + DIVIDER)
+            print("Sorry, you lose...")
+        print("The word was {}.\n".format(word))
+
+        #Formats scoreboard.
+        print("╔═════ Scoreboard ══════╗")
+        print("   Wins: {}, Losses: {}".format(wins, games_played-wins))
+        print("╚═══════════════════════╝\n")
+
+        #Asks user if they want to play again.
+        while True:
+            again = input("Play another round? y/n: ")
+            print()
+            if again == "y" or again == "n":
+                break
+            else:
+                print("Please enter y or n.")
+        if again == "n":
+            break
+    print("Thanks for playing!")
+    
+    
+if __name__ == "__main__":
+   main()
