@@ -1,0 +1,271 @@
+"""The Factor Theorem.
+
+Finds all linear factors of a polnomial of degree greater than two
+when the user inputs its coefficients, separated by a space. The program
+will divide a factor p of the constant by a factor q of the leading
+coefficient and substitute its value into the polynomial function f(x). If
+the value of f(p/q) is 0, then qx - p is a factor of f(x)"""
+
+__author__ = "Kimberly Wang"
+
+from fractions import Fraction
+
+
+def get_coefficients() -> [int]:
+    """Return integer value coefficients of a polynomial."""
+
+    while True:
+        try:
+            coefficients_str = input("Coefficients: ")
+            print()
+            coefficients = coefficients_str.split(" ")
+            for index in range(len(coefficients)):
+                #Converts user string to integers
+                coefficients[index] = int(coefficients[index])
+            break
+        
+        except ValueError:
+            print("Please enter integers with spaces only in between values.\n")
+            
+    return coefficients
+
+    
+def highest_degree(no_leading_z: [int]) -> int:
+    """Return the degree of the polynomial expression from the
+    coeffficients given.
+    
+    >>> highest_degree([2, 3, 4])
+    2
+    >>> highest_degree([0, 0, 3, 4)]
+    1
+    """
+
+    degree = len(no_leading_z) - 1
+    
+    return degree
+
+
+def remove_leading_z(coefficients: [int]) -> [int]:
+    """Return the list of coefficients after removing the leading zeros.
+
+    >>> remove_leading_z([0, 0, 6, 7])
+    [6, 7]
+    >>> remove_leading_z([0, 6, 0, 9, 0])
+    [6, 0, 9, 0]
+    """
+
+    INVALID = -1
+    
+    index = 0
+    #Keep all items in the list after the first non-zero value.
+    while coefficients[index] == 0:
+        index += 1
+        #If all integers are zero, the list is invalid.
+        if index == len(coefficients):
+            return [INVALID]
+        
+    coefficients = coefficients[index:]
+    return coefficients
+
+
+def clean_coefficients(no_leading_z: [int]) -> [int]:
+    """Return the clean list of coefficients without leading and trailing zeros.
+    
+    >>> clean_coefficients([5, 0, 6, 0, 0])
+    [5, 0, 6]
+    >>> clean_coefficients([-1, 0, 0])
+    [-1]
+    """
+
+    index = len(no_leading_z) - 1
+    #Iterate backwards through the list and keep all items
+    #after the first non zero integer.
+    while no_leading_z[index] == 0:
+        index -= 1
+        
+    no_leading_z = no_leading_z[:(index + 1)]
+    return no_leading_z
+
+    
+def polynomial(clean: [int], degree: int):
+    """Print the polynomial expression when given the clean coefficient
+    list and the degree of the polynomial."""
+    
+    degree_of_term = degree
+    print("The polynomial is: f(x) = ", end = "")
+
+    for coefficient in clean:
+        #Formats addition if the coefficient is positive
+        if coefficient > 0:
+            if degree > degree_of_term >= 0:
+                print(" + ", end = "")
+
+        #Formats subtraction if the coefficient is negative.
+        elif coefficient < 0:
+            if degree >= 0:
+                print(" - ", end = "")
+
+        #Skips coefficient one when the degree is greater than 0.
+        if abs(coefficient) > 1 and degree_of_term >= 0:
+            print(abs(coefficient), end = "")
+        #Prints one only if it is the constant.
+        elif abs(coefficient) == 1 and degree_of_term == 0:
+            print(abs(coefficient), end = "")
+            
+        #Prints the variable x only if the term is not a constant.
+        if degree_of_term > 0 and coefficient != 0:
+            if degree_of_term == 1:
+                print("x", end = "")
+            else:
+                print("x^{}".format(degree_of_term), end = "")
+            
+        degree_of_term -= 1
+    print()
+
+
+def factors(num: int) -> [int]:
+    """Return the factors from one to num of the absolute value
+    of num.
+    
+    
+    >>> 16
+    [1, 2, 4, 8, 16]
+    >>> -4
+    [1, 2, 4]
+    """
+
+    factors = []
+
+    if num < 0:
+        num = abs(num)
+    for i in range(1, num+1):
+        if num%i == 0:
+            factors.append(i)     
+        
+    return factors
+
+
+def test_factors(numerators: [int], denominators: [int],
+                clean: [int], last_coefficient: int) -> [int]:
+    """Return all possible test factors when given list numerators, which
+    is the factors of the constant p, and list denominators, which is the
+    factors of the leading coefficient q.
+    
+    >>>test_factors([1, 2], [1, 2, 4], [2, 4], 0)
+    [0, Fraction(1, 1), Fraction(-1, 1), Fraction(1, 2), Fraction(-1, 2),
+    Fraction(1, 4), Fraction(-1, 4), Fraction(2, 1), Fraction(-2, 1)]
+    >>>test_factors([1, 3], [1, 3], [3, 0, 3], 3)
+    [Fraction(1, 1), Fraction(-1, 1), Fraction(1, 3), Fraction(-1, 3),
+    Fraction(3, 1), Fraction(-3, 1)]"""
+
+    test = []
+
+    #If f(x) takes on the form x^n, x is the only linear factor.
+    #If the last coefficient is zero, x is a linear factor.
+    if len(clean) == 1 or last_coefficient == 0:
+        test.append(0)
+            
+    if len(clean) > 1:
+        for p in numerators:
+            for q in denominators:
+                test_value = Fraction(p, q)
+                if test_value not in test:
+                    #Test values are both positive and negative.
+                    test.append(test_value)
+                    test.append(-1*test_value)
+                
+    return test
+
+
+def for_function_zero(clean: [int], degree: int, test: [int]):
+    """Print the calculated values of f(numerator/denominator). If it
+    is zero, print the factors of the polynomial."""
+
+    zeros = []
+    print("Calculations: ")
+    for frac in test:
+        n = frac.numerator
+        d = frac.denominator
+        sum_ = 0
+
+        #Multiplies each coefficients by the variable to the degree of
+        #of the term, and sums all terms together to determine f(p/q).
+        for i in range(len(clean)):
+            sum_ += frac ** (degree - i) * clean[i]
+            
+        if sum_ == 0:
+            #Formats the coefficient when it is equal to one.
+            if d == 1:
+                factor = "x"
+            else:
+                factor = "{}x".format(d)
+
+            #Formats the sign of each term.
+            if n < 0:
+                factor += " + {}".format(abs(n))
+            elif n > 0:
+                factor += " - {}".format(n)
+            
+            zeros.append(factor)
+        
+        print("f({}) = ({})".format(frac, sum_))
+    print()
+    
+    if len(zeros) == 0:
+        print("There are no linear solutions.\n")
+    else:
+        print("These are the unique linear factor(s) of f(x): ", end = "")
+        for i in range(len(zeros) -1):
+            print(zeros[i], end = ", ")
+        print(zeros[-1])
+    
+    
+def main():
+    """This is the main function."""
+    
+    print("""FACTOR THEOREM
+--------------
+Finds all the linear factors of a polynomial(degree 2 or greater)
+with integer coefficients. Enter the coefficients in order of
+descending power, separated by spaces in the middle.\n""")
+    
+    while True:
+        #Ensures that the degree is at least two.
+        while True:
+            coefficients = get_coefficients()
+            no_leading_z = remove_leading_z(coefficients)
+            degree = highest_degree(no_leading_z)
+            if degree > 1:
+                break
+            else:
+                print("Degree must be greater than 1.\n")
+                
+        print("The degree is {}. ".format(degree))
+        clean = clean_coefficients(no_leading_z)
+        polynomial(clean, degree)
+        print()
+        
+        numerators = factors(clean[-1])
+        last_coefficient = no_leading_z[-1]
+        denominators = factors(no_leading_z[0])
+        test = test_factors(numerators, denominators, clean, last_coefficient)
+        for_function_zero(clean, degree, test)
+
+        #User may rerun the program, or quit.
+        while True:
+            repeat = input("Do you want to run the program again? (y/n): ")
+            if repeat == "n":
+                print()
+                break
+            if repeat == "y":
+                print()
+                break
+            else:
+                print("Enter a valid input. (y/n)")
+                
+        if repeat == "n":
+            print("Thank you for using FACTOR THEOREM.")
+            
+    
+if __name__ == "__main__":
+    main()
